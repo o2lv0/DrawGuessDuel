@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import type { GameRoom, Player, PlayerRole, DrawingStroke, ClientGameState } from "@shared/schema";
 import { getRandomWord } from "./words.ts";
-import { compareGuessWithWord } from "./openai";
+import { compareGuessWithWord } from "./openai.ts";
 
 class GameManager {
   private rooms: Map<string, GameRoom> = new Map();
