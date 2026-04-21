@@ -42,6 +42,8 @@ export default function Game() {
     },
     onClearCanvas: () => {
       setStrokes([]);
+      setUndoHistory([]);
+      setRedoStack([]);
     },
     onGuessResult: (result) => {
       setFeedbackMessage({

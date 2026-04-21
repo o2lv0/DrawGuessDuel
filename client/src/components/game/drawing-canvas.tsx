@@ -29,8 +29,8 @@ interface DrawingCanvasProps {
 export function DrawingCanvas({ strokes, onDraw, onClear, onUndo, onRedo, canUndo, canRedo, isDrawer }: DrawingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentColor, setCurrentColor] = useState(DRAWING_COLORS[6].value); // Black
-  const [currentSize, setCurrentSize] = useState(BRUSH_SIZES[1].value); // Medium
+  const [currentColor, setCurrentColor] = useState<string>(DRAWING_COLORS[11].value); // Black (index 11)
+  const [currentSize, setCurrentSize] = useState<number>(BRUSH_SIZES[1].value); // Medium
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [toolMode, setToolMode] = useState<"draw" | "fill" | "eyedropper">("draw"); // Drawing tool mode
@@ -225,9 +225,9 @@ export function DrawingCanvas({ strokes, onDraw, onClear, onUndo, onRedo, canUnd
     <Card className="p-4 space-y-4">
       {/* Color Palette */}
       {isDrawer && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-muted-foreground ml-2">الألوان:</span>
-          <div className="flex gap-2 flex-wrap">
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-muted-foreground">لوحة الألوان</span>
+          <div className="flex gap-2 flex-wrap items-center">
             {DRAWING_COLORS.map((color) => (
               <button
                 key={color.value}
@@ -236,6 +236,8 @@ export function DrawingCanvas({ strokes, onDraw, onClear, onUndo, onRedo, canUnd
                 className={`w-10 h-10 rounded-full border-2 transition-all hover-elevate active-elevate-2 ${
                   currentColor === color.value
                     ? "border-primary ring-2 ring-primary ring-offset-2 scale-110"
+                    : color.value === "#FFFFFF"
+                    ? "border-muted-foreground/30"
                     : "border-border"
                 }`}
                 style={{ backgroundColor: color.value }}
@@ -249,6 +251,7 @@ export function DrawingCanvas({ strokes, onDraw, onClear, onUndo, onRedo, canUnd
               size="icon"
               onClick={() => setShowColorPicker(true)}
               className="w-10 h-10 rounded-full"
+              title="منتقي الألوان المخصص"
             >
               <Palette className="w-4 h-4" />
             </Button>
@@ -331,19 +334,21 @@ export function DrawingCanvas({ strokes, onDraw, onClear, onUndo, onRedo, canUnd
               </Button>
             ))}
           </div>
-          {isDrawer && (
-            <Button
-              data-testid="button-clear-canvas"
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowClearDialog(true)}
-              className="mr-auto"
-            >
-              <Trash2 className="w-4 h-4 ml-2" />
-              مسح الكل
-            </Button>
-          )}
         </div>
+      )}
+
+      {/* Clear All Button - Available in all tool modes */}
+      {isDrawer && (
+        <Button
+          data-testid="button-clear-canvas"
+          variant="destructive"
+          size="sm"
+          onClick={() => setShowClearDialog(true)}
+          className="mr-auto"
+        >
+          <Trash2 className="w-4 h-4 ml-2" />
+          مسح الكل
+        </Button>
       )}
 
       {/* Canvas */}
@@ -370,13 +375,6 @@ export function DrawingCanvas({ strokes, onDraw, onClear, onUndo, onRedo, canUnd
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
         />
-        {!isDrawer && (
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="bg-background/80 backdrop-blur-sm px-4 py-2 rounded-lg">
-              <p className="text-sm text-muted-foreground">يرسم اللاعب الآخر...</p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Clear Canvas Confirmation Dialog */}

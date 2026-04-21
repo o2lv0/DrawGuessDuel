@@ -1,99 +1,60 @@
 // Arabic word bank for the drawing game
+// 20 nouns in 4 easy categories with 5 words each
 export const ARABIC_WORDS = [
-  // Animals - حيوانات
-  "قطة",
-  "كلب",
-  "حصان",
-  "أسد",
-  "فيل",
-  "زرافة",
-  "قرد",
-  "أرنب",
-  "سمكة",
-  "طائر",
-  "فراشة",
-  "نحلة",
-  "بقرة",
-  "خروف",
-  "جمل",
-  "دجاجة",
-  "بطة",
+  // Animals - حيوانات (5 words)
+  "قطة",     // cat
+  "كلب",     // dog
+  "حصان",    // horse
+  "سمكة",    // fish
+  "طائر",    // bird
   
-  // Objects - أشياء
-  "كتاب",
-  "قلم",
-  "كرسي",
-  "طاولة",
-  "باب",
-  "نافذة",
-  "مفتاح",
-  "ساعة",
-  "هاتف",
-  "كاميرا",
-  "نظارة",
-  "حقيبة",
-  "مظلة",
-  "كرة",
-  "بالون",
+  // Food - طعام (5 words)
+  "تفاحة",   // apple
+  "موزة",    // banana
+  "خبز",     // bread
+  "بيتزا",   // pizza
+  "كعكة",    // cake
   
-  // Food - طعام
-  "تفاحة",
-  "موزة",
-  "برتقالة",
-  "عنب",
-  "بطيخ",
-  "خبز",
-  "بيتزا",
-  "آيس كريم",
-  "كعكة",
-  "عصير",
-  "شاي",
-  "قهوة",
+  // Objects - أشياء (5 words)
+  "كتاب",    // book
+  "قلم",     // pen
+  "كرسي",    // chair
+  "ساعة",    // clock
+  "مفتاح",   // key
   
-  // Nature - طبيعة
-  "شجرة",
-  "زهرة",
-  "شمس",
-  "قمر",
-  "نجمة",
-  "سحابة",
-  "مطر",
-  "برق",
-  "جبل",
-  "بحر",
-  "نهر",
-  "غابة",
-  
-  // Transportation - مواصلات
-  "سيارة",
-  "طائرة",
-  "قطار",
-  "دراجة",
-  "حافلة",
-  "قارب",
-  "صاروخ",
-  
-  // Body Parts - أعضاء الجسم
-  "يد",
-  "قدم",
-  "رأس",
-  "عين",
-  "أنف",
-  "فم",
-  "أذن",
-  
-  // Common Items - أشياء شائعة
-  "منزل",
-  "مدرسة",
-  "قلب",
-  "علم",
-  "كوب",
-  "صحن",
-  "ملعقة",
-  "سكين",
+  // Nature - طبيعة (5 words)
+  "شجرة",    // tree
+  "زهرة",    // flower
+  "شمس",     // sun
+  "قمر",     // moon
+  "نجمة",    // star
 ];
 
-export function getRandomWord(): string {
-  const randomIndex = Math.floor(Math.random() * ARABIC_WORDS.length);
-  return ARABIC_WORDS[randomIndex];
+// Shuffle array using Fisher-Yates algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Get initial shuffled word list
+export function getInitialWordList(): string[] {
+  return shuffleArray(ARABIC_WORDS);
+}
+
+// Get next word from available words, reshuffle if needed
+export function getNextWord(availableWords: string[]): { word: string; updatedAvailableWords: string[] } {
+  // If no words available, reshuffle the entire list
+  if (availableWords.length === 0) {
+    availableWords = getInitialWordList();
+  }
+  
+  // Take the first word and remove it from available words
+  const word = availableWords[0];
+  const updatedAvailableWords = availableWords.slice(1);
+  
+  return { word, updatedAvailableWords };
 }

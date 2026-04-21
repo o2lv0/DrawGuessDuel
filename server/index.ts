@@ -1,7 +1,7 @@
-import express from "express";
-import type { Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes.ts";
-import { setupVite, serveStatic, log } from "./vite.ts";
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import { gameManager } from "./game-manager";
 
 const app = express();
 
@@ -78,5 +78,8 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Start automatic cleanup of inactive game rooms
+    gameManager.startCleanupTimer();
   });
 })();

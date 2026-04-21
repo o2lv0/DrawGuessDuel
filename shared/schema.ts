@@ -32,6 +32,8 @@ export interface GameRoom {
   currentRound: number;
   hasGuessed: boolean;
   winnerId?: string;
+  availableWords: string[]; // Words that haven't been used yet in this cycle
+  lastActivityTime: number; // Timestamp of last activity in milliseconds
 }
 
 export interface GuessResult {
@@ -42,14 +44,17 @@ export interface GuessResult {
 // WebSocket message types
 export type WSMessageType = 
   | "join_room"
+  | "reconnect_room"
   | "player_joined"
   | "game_start"
   | "draw_stroke"
+  | "clear_canvas"
   | "submit_guess"
   | "guess_result"
   | "turn_change"
   | "game_end"
   | "player_disconnect"
+  | "play_again"
   | "error";
 
 export interface WSMessage {
@@ -72,16 +77,21 @@ export interface ClientGameState {
   strokes: DrawingStroke[];
 }
 
-// Drawing colors
+// Drawing colors - Expanded palette for better drawing options
 export const DRAWING_COLORS = [
   { name: "أحمر", nameEn: "red", value: "#EF4444" },
-  { name: "أزرق", nameEn: "blue", value: "#3B82F6" },
-  { name: "أخضر", nameEn: "green", value: "#10B981" },
-  { name: "أصفر", nameEn: "yellow", value: "#F59E0B" },
+  { name: "وردي", nameEn: "pink", value: "#EC4899" },
   { name: "برتقالي", nameEn: "orange", value: "#F97316" },
+  { name: "أصفر", nameEn: "yellow", value: "#F59E0B" },
+  { name: "أخضر فاتح", nameEn: "light-green", value: "#22C55E" },
+  { name: "أخضر", nameEn: "green", value: "#059669" },
+  { name: "أزرق فاتح", nameEn: "light-blue", value: "#38BDF8" },
+  { name: "أزرق", nameEn: "blue", value: "#3B82F6" },
   { name: "بنفسجي", nameEn: "purple", value: "#A855F7" },
-  { name: "أسود", nameEn: "black", value: "#000000" },
   { name: "بني", nameEn: "brown", value: "#92400E" },
+  { name: "رمادي", nameEn: "gray", value: "#6B7280" },
+  { name: "أسود", nameEn: "black", value: "#000000" },
+  { name: "أبيض", nameEn: "white", value: "#FFFFFF" },
 ] as const;
 
 // Brush sizes

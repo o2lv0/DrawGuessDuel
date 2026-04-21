@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Copy, LogOut, Check } from "lucide-react";
 import { useState } from "react";
+import logoUrl from "@assets/الأقصى_1762514982093.png";
 
 interface GameHeaderProps {
   roomCode: string;
@@ -34,6 +35,16 @@ export function GameHeader({ roomCode, onLeave }: GameHeaderProps) {
             <LogOut className="w-4 h-4 ml-2" />
             مغادرة
           </Button>
+        </div>
+
+        {/* Logo in center */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <img 
+            src={logoUrl} 
+            alt="مدرسة الأقصى" 
+            className="h-12 w-auto"
+            data-testid="img-school-logo-game"
+          />
         </div>
 
         <div className="flex items-center gap-2">

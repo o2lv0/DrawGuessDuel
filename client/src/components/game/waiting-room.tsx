@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Copy, Check, Users, Clock } from "lucide-react";
 import { useState } from "react";
+import logoUrl from "@assets/الأقصى_1762514982093.png";
 
 interface WaitingRoomProps {
   roomCode: string;
@@ -24,6 +25,16 @@ export function WaitingRoom({ roomCode, playerName, onLeave }: WaitingRoomProps)
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-background to-accent/10">
+      {/* Logo in top right */}
+      <div className="absolute top-4 right-4">
+        <img 
+          src={logoUrl} 
+          alt="مدرسة الأقصى" 
+          className="h-16 w-auto"
+          data-testid="img-school-logo-waiting"
+        />
+      </div>
+
       <Card className="w-full max-w-md border-2">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">

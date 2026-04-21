@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Paintbrush, Users } from "lucide-react";
+import logoUrl from "@assets/الأقصى_1762514982093.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -26,8 +27,19 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-background to-accent/10">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-accent/10">
+      {/* Logo in top right */}
+      <div className="absolute top-4 right-4">
+        <img 
+          src={logoUrl} 
+          alt="مدرسة الأقصى" 
+          className="h-16 w-auto"
+          data-testid="img-school-logo"
+        />
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
             <Paintbrush className="w-10 h-10 text-primary" />
@@ -172,10 +184,20 @@ export default function Home() {
           </Card>
         )}
 
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>أول لاعب يصل إلى 5 نقاط يفوز 🏆</p>
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            <p>أول لاعب يصل إلى 5 نقاط يفوز 🏆</p>
+          </div>
         </div>
       </div>
+
+      {/* Footer - only on homepage */}
+      <footer className="py-4 border-t bg-background/50">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-sm text-muted-foreground" data-testid="text-footer">
+            © لعبة الرسم والتخمين – مدارس الأقصى
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

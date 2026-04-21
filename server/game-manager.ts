@@ -1,10 +1,12 @@
 import { randomUUID } from "crypto";
 import type { GameRoom, Player, PlayerRole, DrawingStroke, ClientGameState } from "@shared/schema";
-import { getRandomWord } from "./words.ts";
-import { compareGuessWithWord } from "./openai.ts";
+import { getInitialWordList, getNextWord } from "./words";
+import { compareGuessWithWord } from "./openai";
 
 class GameManager {
   private rooms: Map<string, GameRoom> = new Map();
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  private readonly ROOM_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
   createRoom(roomCode: string, playerName: string): { playerId: string; room: GameRoom } {
     const playerId = randomUUID();
@@ -23,6 +25,8 @@ class GameManager {
       currentDrawerId: playerId,
       currentRound: 0,
       hasGuessed: false,
+      availableWords: getInitialWordList(), // Initialize shuffled word list
+      lastActivityTime: Date.now(),
     };
 
     this.rooms.set(roomCode, room);
@@ -54,13 +58,20 @@ class GameManager {
       this.startGame(room);
     }
 
+    // Update activity time
+    room.lastActivityTime = Date.now();
+
     return { playerId, room };
   }
 
   private startGame(room: GameRoom) {
     room.status = "playing";
     room.currentRound = 1;
-    room.currentWord = getRandomWord();
+    
+    // Get next word from available words
+    const { word, updatedAvailableWords } = getNextWord(room.availableWords);
+    room.currentWord = word;
+    room.availableWords = updatedAvailableWords;
     room.hasGuessed = false;
   }
 
@@ -83,8 +94,11 @@ class GameManager {
       return null;
     }
 
+    // Save the current word before switching turns (for feedback message)
+    const previousWord = room.currentWord;
+
     // Use OpenAI to compare guess with target word
-    const result = await compareGuessWithWord(guess, room.currentWord);
+    const result = await compareGuessWithWord(guess, previousWord);
 
     // Update score
     if (result.correct) {
@@ -106,7 +120,10 @@ class GameManager {
 
     const message = result.correct
       ? `${result.explanation} • +1 نقطة`
-      : `${result.explanation} • -1 نقطة • الكلمة كانت: ${room.currentWord}`;
+      : `${result.explanation} • -1 نقطة • الكلمة كانت: ${previousWord}`;
+
+    // Update activity time
+    room.lastActivityTime = Date.now();
 
     return {
       correct: result.correct,
@@ -127,8 +144,10 @@ class GameManager {
       room.currentDrawerId = newDrawer.id;
     }
 
-    // New word and round
-    room.currentWord = getRandomWord();
+    // Get next word from available words (will reshuffle if all used)
+    const { word, updatedAvailableWords } = getNextWord(room.availableWords);
+    room.currentWord = word;
+    room.availableWords = updatedAvailableWords;
     room.currentRound++;
     room.hasGuessed = false;
   }
@@ -163,14 +182,76 @@ class GameManager {
       player.score = 0;
     });
 
+    // Reset word list for new game
+    room.availableWords = getInitialWordList();
+
     // Start a new game
     this.startGame(room);
+    
+    // Update activity time
+    room.lastActivityTime = Date.now();
     
     return room;
   }
 
   removeRoom(roomCode: string) {
     this.rooms.delete(roomCode);
+  }
+
+  // Update the last activity timestamp for a room
+  updateRoomActivity(roomCode: string) {
+    const room = this.rooms.get(roomCode);
+    if (room) {
+      room.lastActivityTime = Date.now();
+    }
+  }
+
+  // Clean up rooms that haven't had activity in over 1 hour
+  cleanupInactiveRooms() {
+    const now = Date.now();
+    const roomsToRemove: string[] = [];
+
+    this.rooms.forEach((room, roomCode) => {
+      const inactiveTime = now - room.lastActivityTime;
+      if (inactiveTime > this.ROOM_TIMEOUT_MS) {
+        roomsToRemove.push(roomCode);
+        console.log(`[Cleanup] Removing inactive room ${roomCode} (inactive for ${Math.round(inactiveTime / 60000)} minutes)`);
+      }
+    });
+
+    roomsToRemove.forEach((roomCode) => {
+      this.rooms.delete(roomCode);
+    });
+
+    if (roomsToRemove.length > 0) {
+      console.log(`[Cleanup] Removed ${roomsToRemove.length} inactive room(s)`);
+    }
+  }
+
+  // Start automatic cleanup timer (runs every 5 minutes)
+  startCleanupTimer() {
+    if (this.cleanupInterval) {
+      return; // Already running
+    }
+
+    console.log('[Cleanup] Starting automatic room cleanup (checking every 5 minutes)');
+    
+    // Run cleanup immediately on start
+    this.cleanupInactiveRooms();
+    
+    // Then run every 5 minutes
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupInactiveRooms();
+    }, 5 * 60 * 1000); // 5 minutes
+  }
+
+  // Stop cleanup timer (for graceful shutdown)
+  stopCleanupTimer() {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+      console.log('[Cleanup] Stopped automatic room cleanup');
+    }
   }
 }
 

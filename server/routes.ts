@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import type { WSMessage, DrawingStroke } from "@shared/schema";
-import { gameManager } from "./game-manager.ts";
+import { gameManager } from "./game-manager";
 
 // Reference: javascript_websocket blueprint
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -57,6 +57,55 @@ async function handleWebSocketMessage(
   wss: WebSocketServer
 ) {
   switch (message.type) {
+    case 'reconnect_room': {
+      const { roomCode, playerId } = message.payload;
+      console.log(`[Reconnect] Player ${playerId} reconnecting to room ${roomCode}`);
+
+      const room = gameManager.getRoom(roomCode);
+      if (!room) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          payload: { message: 'لم يتم العثور على الغرفة' },
+        }));
+        return;
+      }
+
+      // Check if player exists in this room
+      const player = room.players.find((p) => p.id === playerId);
+      if (!player) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          payload: { message: 'لم يتم العثور على اللاعب في هذه الغرفة' },
+        }));
+        return;
+      }
+
+      // Remove old connection for this player if exists
+      connections.forEach((info, oldWs) => {
+        if (info.roomCode === roomCode && info.playerId === playerId && oldWs !== ws) {
+          console.log(`[Reconnect] Removing old connection for player ${playerId}`);
+          oldWs.close();
+          connections.delete(oldWs);
+        }
+      });
+
+      // Store new connection info
+      connections.set(ws, { roomCode, playerId });
+
+      // Update room activity on reconnection
+      gameManager.updateRoomActivity(roomCode);
+
+      // Send current game state to reconnected player
+      const gameState = gameManager.getClientGameState(room, playerId);
+      ws.send(JSON.stringify({
+        type: room.status === 'waiting' ? 'player_joined' : (room.status === 'playing' ? 'game_start' : 'game_end'),
+        payload: gameState,
+      }));
+
+      console.log(`[Reconnect] Player ${playerId} successfully reconnected to room ${roomCode}`);
+      break;
+    }
+
     case 'join_room': {
       const { roomCode, playerName, isCreator } = message.payload;
 
@@ -110,6 +159,9 @@ async function handleWebSocketMessage(
 
       const { roomCode, playerId } = connectionInfo;
       const stroke: DrawingStroke = message.payload;
+
+      // Update room activity (keep room alive while drawing)
+      gameManager.updateRoomActivity(roomCode);
 
       // Broadcast drawing stroke to other player in the room
       broadcastToRoom(roomCode, {
@@ -174,6 +226,13 @@ async function handleWebSocketMessage(
         setTimeout(() => {
           const room = gameManager.getRoom(roomCode);
           if (room) {
+            // Clear the canvas for both players before turn change
+            broadcastToRoom(roomCode, {
+              type: 'clear_canvas',
+              payload: {},
+            }, connections, wss);
+            
+            // Then send turn change to both players
             room.players.forEach((player) => {
               const playerState = gameManager.getClientGameState(room, player.id);
               sendToPlayer(player.id, roomCode, {

@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Trophy, Home, RotateCcw } from "lucide-react";
 import type { Player } from "@shared/schema";
+import logoUrl from "@assets/الأقصى_1762514982093.png";
 
 interface VictoryScreenProps {
   winnerName: string;
@@ -14,6 +15,16 @@ interface VictoryScreenProps {
 export function VictoryScreen({ winnerName, isWinner, players, onPlayAgain, onLeave }: VictoryScreenProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      {/* Logo in top right */}
+      <div className="absolute top-4 right-4">
+        <img 
+          src={logoUrl} 
+          alt="مدرسة الأقصى" 
+          className="h-16 w-auto"
+          data-testid="img-school-logo-victory"
+        />
+      </div>
+
       <div className="w-full max-w-lg space-y-4">
         {/* Victory Card */}
         <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">

@@ -73,9 +73,16 @@ export function useGameWebSocket({
     switch (message.type) {
       case "player_joined":
       case "game_start":
-      case "turn_change":
       case "game_end":
       case "player_disconnect":
+        if (message.payload) {
+          onGameStateUpdate(message.payload as ClientGameState);
+        }
+        break;
+      
+      case "turn_change":
+        // Clear canvas and reset undo/redo history on turn change
+        onClearCanvas();
         if (message.payload) {
           onGameStateUpdate(message.payload as ClientGameState);
         }
