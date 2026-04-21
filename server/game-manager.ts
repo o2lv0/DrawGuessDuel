@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import type { GameRoom, Player, PlayerRole, DrawingStroke, ClientGameState } from "@shared/schema";
-import { getRandomWord } from "./words";
+import { getRandomWord } from "./words.ts";
 import { compareGuessWithWord } from "./openai";
 
 class GameManager {
