@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import type { WSMessage, DrawingStroke } from "@shared/schema";
-import { gameManager } from "./game-manager";
+import { gameManager } from "./game-manager.ts";
 
 // Reference: javascript_websocket blueprint
 export async function registerRoutes(app: Express): Promise<Server> {
